@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Anniversary Program</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, rgb(255, 178, 191), rgb(255, 124, 124), rgb(255, 91, 104));
+    }
+
+    #slideshow {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transition: background-image 2s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="background"></div>
+  <div id="slideshow"></div>
+
+  <script>
+    function loadSlides() {
+      const slideshowElement = document.getElementById('slideshow');
+      const slideDirectory = 'images/slide/'; // Directory where slide images are located
+
+      let images = [];
+      let currentImage = 0;
+
+      // Fetch slide images from the slide directory
+      fetchSlideImages(slideDirectory)
+        .then(imageUrls => {
+          images = imageUrls;
+          startSlideshow();
+        })
+        .catch(error => {
+          console.error('Failed to fetch slide images:', error);
+        });
+
+      function fetchSlideImages(directory) {
+        return fetch(directory)
+          .then(response => response.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const links = doc.getElementsByTagName('a');
+            const imageUrls = [];
+
+            for (let i = 0; i < links.length; i++) {
+              const href = links[i].getAttribute('href');
+              if (isImageFile(href)) {
+                imageUrls.push(`${directory}${href}`);
+              }
+            }
+
+            return imageUrls;
+          });
+      }
+
+      function isImageFile(filename) {
+        return /\.(jpe?g|png|gif|bmp)$/i.test(filename);
+      }
+
+      function startSlideshow() {
+        setInterval(changeSlide, 5000); // Change slide every 5 seconds
+        changeSlide();
+      }
+
+      function changeSlide() {
+        const nextImage = (currentImage + 1) % images.length;
+        const nextImageUrl = `url('${images[nextImage]}')`;
+
+        slideshowElement.style.backgroundImage = nextImageUrl;
+
+        currentImage = nextImage;
+      }
+    }
+
+    loadSlides();
+
+    // Play audio on user interaction (e.g., button click)
+    document.addEventListener('click', function() {
+      const audio = new Audio('audio/background.mp3');
+      audio.loop = true;
+      audio.play();
+    });
+  </script>
+</body>
+</html>
