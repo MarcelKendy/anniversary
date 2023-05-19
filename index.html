@@ -1,108 +1,184 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Anniversary Program</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
+    <title>Anniversary Program</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
 
-    #background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(to bottom, rgb(255, 178, 191), rgb(255, 124, 124), rgb(255, 91, 104));
-    }
+        #background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgb(255, 178, 191), rgb(255, 124, 124), rgb(255, 91, 104));
+            border: 10px double white;
+            box-sizing: border-box;
+        }
+        #slideshow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 95%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: background-image 2s ease-in-out;
+        }
 
-    #slideshow {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      transition: background-image 2s ease-in-out;
-    }
-  </style>
+
+        #play-button {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            color: #fff;
+            border: solid white 1px;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            overflow: hidden;
+            text-align: center;
+            font-weight: bold;
+            font-size: 20px;
+            transition: color 0.3s ease-in-out;
+        }
+
+        #play-button img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #play-button:hover img {
+            transform: scale(1.1);
+        }
+
+        #play-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 5px rgba(255, 129, 129, 0.8);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #play-button:hover::before {
+            opacity: 1;
+        }
+
+        #play-button::after {
+            content: 'Play \2764';
+            text-shadow: 1px 1px red;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #play-button:hover::after {
+            opacity: 1;
+        }
+    </style>
 </head>
+
 <body>
-  <div id="background"></div>
-  <div id="slideshow"></div>
+    <div id="background"></div>
+    <div id="slideshow"></div>
 
-  <script>
-    function loadSlides() {
-      const slideshowElement = document.getElementById('slideshow');
-      const slideDirectory = 'images/slide/'; // Directory where slide images are located
+    <button id="play-button" onclick="startProgram()">
+        <img src="images/button.png"></img>
+    </button>
 
-      let images = [];
-      let currentImage = 0;
+    <script>
+        function loadSlides() {
+            const slideshowElement = document.getElementById('slideshow');
+            const slideDirectory = 'images/slide/'; // Directory where slide images are located
 
-      // Fetch slide images from the slide directory
-      fetchSlideImages(slideDirectory)
-        .then(imageUrls => {
-          images = imageUrls;
-          startSlideshow();
-        })
-        .catch(error => {
-          console.error('Failed to fetch slide images:', error);
-        });
+            let images = [];
+            let currentImage = 0;
 
-      function fetchSlideImages(directory) {
-        return fetch(directory)
-          .then(response => response.text())
-          .then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const links = doc.getElementsByTagName('a');
-            const imageUrls = [];
+            // Fetch slide images from the slide directory
+            fetchSlideImages(slideDirectory)
+                .then(imageUrls => {
+                    images = imageUrls;
+                    startSlideshow();
+                })
+                .catch(error => {
+                    console.error('Failed to fetch slide images:', error);
+                });
 
-            for (let i = 0; i < links.length; i++) {
-              const href = links[i].getAttribute('href');
-              if (isImageFile(href)) {
-                imageUrls.push(`${directory}${href}`);
-              }
+            function fetchSlideImages(directory) {
+                return fetch(directory)
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const links = doc.getElementsByTagName('a');
+                        const imageUrls = [];
+
+                        for (let i = 0; i < links.length; i++) {
+                            const href = links[i].getAttribute('href');
+                            if (isImageFile(href)) {
+                                imageUrls.push(`${directory}${href}`);
+                            }
+                        }
+
+                        return imageUrls;
+                    });
             }
 
-            return imageUrls;
-          });
-      }
+            function isImageFile(filename) {
+                return /\.(jpe?g|png|gif|bmp)$/i.test(filename);
+            }
 
-      function isImageFile(filename) {
-        return /\.(jpe?g|png|gif|bmp)$/i.test(filename);
-      }
+            function startSlideshow() {
+                setInterval(changeSlide, 5000); // Change slide every 5 seconds
+                changeSlide();
+            }
 
-      function startSlideshow() {
-        setInterval(changeSlide, 5000); // Change slide every 5 seconds
-        changeSlide();
-      }
+            function changeSlide() {
+                const nextImage = (currentImage + 1) % images.length;
+                const nextImageUrl = `url('${images[nextImage]}')`;
 
-      function changeSlide() {
-        const nextImage = (currentImage + 1) % images.length;
-        const nextImageUrl = `url('${images[nextImage]}')`;
+                slideshowElement.style.backgroundImage = nextImageUrl;
 
-        slideshowElement.style.backgroundImage = nextImageUrl;
+                currentImage = nextImage;
+            }
+        }
 
-        currentImage = nextImage;
-      }
-    }
+        function startProgram() {
+            const playButton = document.getElementById('play-button');
+            const audio = new Audio('audio/background.mp3');
+            audio.loop = true;
+            audio.play();
 
-    loadSlides();
+            playButton.style.display = 'none';
 
-    // Play audio on user interaction (e.g., button click)
-    document.addEventListener('click', function() {
-      const audio = new Audio('audio/background.mp3');
-      audio.loop = true;
-      audio.play();
-    });
-  </script>
+            loadSlides();
+        }
+    </script>
 </body>
+
 </html>
