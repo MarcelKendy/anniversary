@@ -13,8 +13,12 @@
     <div id="slideshow"></div>
     <div id="message-container"></div>
     <button id="play-button" onclick="startProgram()">
-        <img src="images/button.png"></img>
+        <img src="images/button.png" alt="Photo"></img>
     </button>
+    <button id="audio-button" onclick="toggleAudio()">
+        <img id="audio-button-icon" src="images/pause.png" alt="Play/Pause">
+    </button>      
+    <img id="replay-button" onclick="replay()" src="images/replay.png" alt="Restart">
     <script src="script.js"></script>
 </body>
 
