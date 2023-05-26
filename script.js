@@ -2,9 +2,9 @@ const messages = [
     'Cara batatinha reformed...',
     'Venho através desta breguice',
     'Celebrar nosso primeiro ano juntos',
-    'Feliz aniversário de namoro! 28/05/2022',
     'Agora curta esse visual...'
 ]
+const ending_message = 'Feliz aniversário de namoro! 28/05/2023'
 const slide_show = document.getElementById('slideshow')
 const message_container = document.getElementById('message-container')
 const play_button = document.getElementById('play-button')
@@ -15,6 +15,7 @@ let playing_audio = false
 let audio
 let slide_show_interval
 let heart_container
+let first_pop = true
 
 function startProgram() {
     audio = new Audio('audio/background.mp3')
@@ -60,9 +61,13 @@ function playSlides() {
     }
 
     function startSlideshow() {
-        slide_show_interval = setInterval(() => { changeSlide(); current_message_index < messages.length ? showMessages() : popParty() }, 8000)
+        slide_show_interval = setInterval(() => { changeSlide(), current_message_index < messages.length ? showMessages() : popParty() }, 8000)
         changeSlide()
         showMessages()
+
+        /*slide_show_interval = setInterval(() => { current_message_index < messages.length ? showMessages() : (changeSlide(), popParty()) }, 8000)
+        //changeSlide()
+        */
 
         function changeSlide() {
             const next_image = (current_image + 1) % images.length
@@ -71,22 +76,26 @@ function playSlides() {
             current_image = next_image
         }
 
-        function showMessages() {
+        function showMessages(fadeaway = true, timer = 7000) {
             message_container.textContent = messages[current_message_index]
-            message_container.style.opacity = 1
-            setTimeout(() => {
-                message_container.style.opacity = 0
-            }, 7000)
             current_message_index++
+            message_container.style.opacity = 1
+            fadeaway && setTimeout(() => {
+                    message_container.style.opacity = 0
+            }, timer)
         }
     }
 }
 
 function popParty() {
-    if (heart_container) {
-        heart_container.remove();
-    }
-    heart_container = document.createElement('div');
+    first_pop && (() => {
+        message_container.textContent = ending_message
+        message_container.classList.add('pulse-text-animation')
+        message_container.style.opacity = 1
+        first_pop = false
+    })()
+    heart_container && heart_container.remove()
+    heart_container = document.createElement('div')
     heart_container.className = 'heart-container'
     for (let i = 0; i < 50; i++) {
         const heart = document.createElement('img')
@@ -148,13 +157,13 @@ function toggleAudio(reset = false) {
     }
     playing_audio = !playing_audio;
     if (playing_audio) {
-        audio_button_icon.src = 'images/pause.png';
-        audio_button.style.backgroundColor = '#9cff6d';
-        audio_button_icon.classList.add('pulse-animation');
+        audio_button_icon.src = 'images/pause.png'
+        audio_button.style.backgroundColor = '#9cff6d'
+        audio_button_icon.classList.add('pulse-animation')
     } else {
-        audio_button_icon.src = 'images/play.png';
-        audio_button.style.backgroundColor = '#f74444';
-        audio_button_icon.classList.remove('pulse-animation');
+        audio_button_icon.src = 'images/play.png'
+        audio_button.style.backgroundColor = '#f74444'
+        audio_button_icon.classList.remove('pulse-animation')
     }
     playAudio(playing_audio);
 }
@@ -166,8 +175,9 @@ function replay() {
     replay_button.style.display = 'none'
     message_container.textContent = ''
     message_container.style.opacity = 0
+    message_container.classList.remove('pulse-text-animation')
     if (heart_container) {
-        heart_container.remove();
+        heart_container.remove()
     }
     play_button.style.display = 'flex'
 }
