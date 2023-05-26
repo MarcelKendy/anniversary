@@ -216,7 +216,7 @@ canvas {
 #audio-button {
     z-index: 3;
     display: none;
-    position: absolute;
+    position: relative;
     top: 20px;
     left: 20px;
     width: 30px;
@@ -228,6 +228,7 @@ canvas {
     align-items: center;
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(2, 2, 2, 0.849); 
+    overflow: visible;
 }
   
 #audio-button img {
@@ -235,6 +236,29 @@ canvas {
     height: 12px;
 }
   
+#audio-button:hover #audio-song {
+    opacity: 1;
+    transform: translateX(0%);
+    transition-delay: 0.2s;
+}
+  
+#audio-song {
+    font-size: 12px;
+    font-weight: bold;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    text-shadow: #000000 1px 1px;
+    z-index: 4;
+    position: absolute;
+    top: 10%;
+    left: 120%;
+    transform: translateX(-10%);
+    opacity: 0;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    white-space: nowrap;
+}
+
+
 @keyframes pulse {
     0% {
       transform: scale(1);

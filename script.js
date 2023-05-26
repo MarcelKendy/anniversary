@@ -11,6 +11,7 @@ const play_button = document.getElementById('play-button')
 const replay_button = document.getElementById('replay-button')
 const audio_button_icon = document.getElementById('audio-button-icon')
 const audio_button = document.getElementById('audio-button')
+const audio_song = document.getElementById("audio-song");
 let playing_audio = false
 let audio
 let slide_show_interval
@@ -92,6 +93,7 @@ function popParty() {
         message_container.textContent = ending_message
         message_container.classList.add('pulse-text-animation')
         message_container.style.opacity = 1
+        timerTotal = 30
         first_pop = false
     })()
     heart_container && heart_container.remove()
@@ -153,6 +155,7 @@ function toggleAudio(reset = false) {
         playing_audio = false
         playAudio(playing_audio)
         audio_button.style.display = 'none'
+        audio_song.innerHTML = '&#9835 Mamonas Assassinas - Pelados em Santos'
         return
     }
     playing_audio = !playing_audio;
@@ -160,10 +163,12 @@ function toggleAudio(reset = false) {
         audio_button_icon.src = 'images/pause.png'
         audio_button.style.backgroundColor = '#9cff6d'
         audio_button_icon.classList.add('pulse-animation')
+        audio_song.innerHTML = '&#9835 Mamonas Assassinas - Pelados em Santos'
     } else {
         audio_button_icon.src = 'images/play.png'
         audio_button.style.backgroundColor = '#f74444'
         audio_button_icon.classList.remove('pulse-animation')
+        audio_song.innerHTML = '&#x23F8 Mamonas Assassinas - Pelados em Santos'
     }
     playAudio(playing_audio);
 }
@@ -179,5 +184,210 @@ function replay() {
     if (heart_container) {
         heart_container.remove()
     }
+    first_pop = true
+    timerTotal = 90
     play_button.style.display = 'flex'
 }
+
+
+// canvas animation, fireworks baby
+
+window.requestAnimFrame = (function () {
+    return (
+        window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        function (callback) {
+            window.setTimeout(callback, 1000 / 60);
+        }
+    );
+})();
+
+var canvas = document.getElementById('canvas'),
+    ctx = canvas.getContext('2d'),
+    cw = window.innerWidth,
+    ch = window.innerHeight,
+    fireworks = [],
+    particles = [],
+    hue = 120,
+    limiterTotal = 5,
+    limiterTick = 0,
+    timerTotal = 90,
+    timerTick = 0,
+    mousedown = false,
+    mx,
+    my;
+
+canvas.width = cw;
+canvas.height = ch;
+
+function random(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function calculateDistance(p1x, p1y, p2x, p2y) {
+    var xDistance = p1x - p2x,
+        yDistance = p1y - p2y;
+    return Math.sqrt(Math.pow(xDistance, 2) + Math.pow(yDistance, 2));
+}
+
+function Firework(sx, sy, tx, ty) {
+    this.x = sx;
+    this.y = sy;
+    this.sx = sx;
+    this.sy = sy;
+    this.tx = tx;
+    this.ty = ty;
+    this.distanceToTarget = calculateDistance(sx, sy, tx, ty);
+    this.distanceTraveled = 0;
+    this.coordinates = [];
+    this.coordinateCount = 3;
+    while (this.coordinateCount--) {
+        this.coordinates.push([this.x, this.y]);
+    }
+    this.angle = Math.atan2(ty - sy, tx - sx);
+    this.speed = 2;
+    this.acceleration = 1.05;
+    this.brightness = random(50, 70);
+    this.targetRadius = 1;
+}
+
+Firework.prototype.update = function (index) {
+    this.coordinates.pop();
+    this.coordinates.unshift([this.x, this.y]);
+
+    if (this.targetRadius < 8) {
+        this.targetRadius += 0.3;
+    } else {
+        this.targetRadius = 1;
+    }
+
+    this.speed *= this.acceleration;
+
+    var vx = Math.cos(this.angle) * this.speed,
+        vy = Math.sin(this.angle) * this.speed;
+    this.distanceTraveled = calculateDistance(this.sx, this.sy, this.x + vx, this.y + vy);
+
+    if (this.distanceTraveled >= this.distanceToTarget) {
+        first_pop ? createParticles(this.tx, this.ty) : createParticles(this.tx, this.ty, 200);
+        fireworks.splice(index, 1);
+    } else {
+        this.x += vx;
+        this.y += vy;
+    }
+};
+
+Firework.prototype.draw = function (size = 1) {
+    ctx.beginPath();
+    ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+    ctx.lineTo(this.x, this.y);
+    ctx.lineWidth = size
+    ctx.strokeStyle = 'hsl(' + hue + ', 100%, ' + this.brightness + '%)';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(this.tx, this.ty, this.targetRadius, 0, Math.PI * 2);
+    ctx.stroke();
+};
+
+function Particle(x, y) {
+    this.x = x;
+    this.y = y;
+    this.coordinates = [];
+    this.coordinateCount = 5;
+    while (this.coordinateCount--) {
+        this.coordinates.push([this.x, this.y]);
+    }
+    this.angle = random(0, Math.PI * 2);
+    this.speed = random(1, 10);
+    this.friction = 0.95;
+    this.gravity = 1;
+    this.hue = random(hue - 50, hue + 50);
+    this.brightness = random(50, 80);
+    this.alpha = 1;
+    this.decay = random(0.015, 0.03);
+}
+
+Particle.prototype.update = function (index) {
+    this.coordinates.pop();
+    this.coordinates.unshift([this.x, this.y]);
+    this.speed *= this.friction;
+    this.x += Math.cos(this.angle) * this.speed;
+    this.y += Math.sin(this.angle) * this.speed + this.gravity;
+    this.alpha -= this.decay;
+    if (this.alpha <= this.decay) {
+        particles.splice(index, 1);
+    }
+};
+
+Particle.prototype.draw = function (size = 1) {
+    ctx.beginPath();
+    ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+    ctx.lineTo(this.x, this.y);
+    ctx.lineWidth = size
+    ctx.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+    ctx.stroke();
+};
+
+function createParticles(x, y, qtt = 30) {
+    var particleCount = qtt;
+    while (particleCount--) {
+        particles.push(new Particle(x, y));
+    }
+}
+
+function loop() {
+    requestAnimFrame(loop);
+    hue = random(0, 360);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.globalCompositeOperation = 'lighter';
+
+    var i = fireworks.length;
+    while (i--) {
+        fireworks[i].draw(first_pop ? undefined : 4);
+        fireworks[i].update(i);
+    }
+
+    var i = particles.length;
+    while (i--) {
+        particles[i].draw(first_pop ? undefined : 4);
+        particles[i].update(i);
+    }
+
+    if (timerTick >= timerTotal) {
+        if (!mousedown) {
+            fireworks.push(new Firework(cw / 2, ch, random(0, cw), random(0, ch / 2)));
+            timerTick = 0;
+        }
+    } else {
+        timerTick++;
+    }
+
+    if (limiterTick >= limiterTotal) {
+        if (mousedown) {
+            fireworks.push(new Firework(cw / 2, ch, mx, my));
+            limiterTick = 0;
+        }
+    } else {
+        limiterTick++;
+    }
+}
+
+canvas.addEventListener('mousemove', function (e) {
+    mx = e.pageX - canvas.offsetLeft;
+    my = e.pageY - canvas.offsetTop;
+});
+
+canvas.addEventListener('mousedown', function (e) {
+    e.preventDefault();
+    mousedown = true;
+});
+
+canvas.addEventListener('mouseup', function (e) {
+    e.preventDefault();
+    mousedown = false;
+});
+
+window.onload = loop;
